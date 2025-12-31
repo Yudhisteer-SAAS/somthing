@@ -141,8 +141,8 @@ const Shop = () => {
         });
 
     const breadcrumbs = breadcrumbSchema([
-        { name: "Home", url: "https://somthing.com/" },
-        { name: "Shop", url: "https://somthing.com/shop" },
+        { name: "Home", url: "https://somthing-ten.vercel.app/" },
+        { name: "Shop", url: "https://somthing-ten.vercel.app/shop" },
     ]);
 
     return (

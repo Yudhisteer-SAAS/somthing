@@ -56,8 +56,8 @@ const Cart = () => {
   const total = subtotal + shipping;
 
   const breadcrumbs = breadcrumbSchema([
-    { name: "Home", url: "https://somthing.com/" },
-    { name: "Cart", url: "https://somthing.com/cart" },
+    { name: "Home", url: "https://somthing-ten.vercel.app/" },
+    { name: "Cart", url: "https://somthing-ten.vercel.app/cart" },
   ]);
 
   return (

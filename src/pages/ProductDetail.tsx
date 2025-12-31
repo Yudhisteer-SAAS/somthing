@@ -120,9 +120,9 @@ const ProductDetail = () => {
     const productDescription = `${product.name} - ${product.category} wall art poster. Premium quality print available in multiple sizes and frame options. Perfect for modern home decor.`;
     
     const breadcrumbs = breadcrumbSchema([
-        { name: "Home", url: "https://somthing.com/" },
-        { name: "Shop", url: "https://somthing.com/shop" },
-        { name: product.name, url: `https://somthing.com/product/${product.id}` },
+        { name: "Home", url: "https://somthing-ten.vercel.app/" },
+        { name: "Shop", url: "https://somthing-ten.vercel.app/shop" },
+        { name: product.name, url: `https://somthing-ten.vercel.app/product/${product.id}` },
     ]);
 
     const productData = productSchema({

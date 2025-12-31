@@ -6,7 +6,7 @@ export const organizationSchema = {
   name: 'Somthing',
   description: 'Premium wall art posters and prints for modern homes',
   url: 'https://somthing.com',
-  logo: 'https://somthing.com/logo.png',
+  logo: 'https://somthing-ten.vercel.app/logo.png',
   sameAs: [
     'https://www.facebook.com/somthing',
     'https://www.instagram.com/somthing',
@@ -29,7 +29,7 @@ export const websiteSchema = {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://somthing.com/shop?search={search_term_string}',
+      urlTemplate: 'https://somthing-ten.vercel.app/shop?search={search_term_string}',
     },
     'query-input': 'required name=search_term_string',
   },
@@ -68,7 +68,7 @@ export const productSchema = (product: {
   },
   offers: {
     '@type': 'Offer',
-    url: `https://somthing.com/product/${product.id}`,
+    url: `https://somthing-ten.vercel.app/product/${product.id}`,
     priceCurrency: 'USD',
     price: product.price.toFixed(2),
     availability: `https://schema.org/${product.availability || 'InStock'}`,
@@ -97,7 +97,7 @@ export const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'Store',
   name: 'Somthing',
-  image: 'https://somthing.com/logo.png',
+  image: 'https://somthing-ten.vercel.app/logo.png',
   '@id': 'https://somthing.com',
   url: 'https://somthing.com',
   telephone: '+1-555-0123',

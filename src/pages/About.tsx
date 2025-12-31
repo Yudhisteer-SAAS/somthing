@@ -91,8 +91,8 @@ const About = () => {
     ];
 
     const breadcrumbs = breadcrumbSchema([
-        { name: "Home", url: "https://somthing.com/" },
-        { name: "About", url: "https://somthing.com/about" },
+        { name: "Home", url: "https://somthing-ten.vercel.app/" },
+        { name: "About", url: "https://somthing-ten.vercel.app/about" },
     ]);
 
     const combinedSchema = {

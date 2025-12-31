@@ -20,7 +20,7 @@ User-agent: facebookexternalhit
 Allow: /
 
 # Sitemap
-Sitemap: https://somthing.com/sitemap.xml
+Sitemap: https://somthing-ten.vercel.app/sitemap.xml
 
 # Crawl-delay for aggressive crawlers
 User-agent: *

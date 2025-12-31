@@ -14,7 +14,7 @@ const SEOHead = ({
   title = 'Somthing | Art Posters That Speak to Your Walls',
   description = 'Discover unique wall art posters that transform your space. From abstract to botanical prints, find the perfect piece for every room. Premium quality, vibrant colors.',
   keywords = 'wall posters, art prints, home decor, abstract art, botanical prints, wall art, poster shop',
-  ogImage = '/og-image.jpg',
+  ogImage = '/og-image.png',
   canonical,
   type = 'website',
   schema,

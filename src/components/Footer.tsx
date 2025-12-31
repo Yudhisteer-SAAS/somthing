@@ -66,7 +66,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="border-t border-background/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-background/60 text-sm">
-            © 2024 Somthing. All rights reserved.
+            © {new Date().getFullYear()} Somthing. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
             <a href="#" className="text-background/60 hover:text-primary transition-colors">Privacy Policy</a>

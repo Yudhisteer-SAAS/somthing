@@ -42,12 +42,20 @@ const stats = [
 
 const team = [
     {
-        name: "Alex Rivera",
+        name: "Ansh Chourasiya",
         role: "Founder & Creative Director",
-        image: poster1,
+        image: "https://media.licdn.com/dms/image/v2/D4D03AQFjURRvnToj0Q/profile-displayphoto-scale_400_400/B4DZoRakBjHsAg-/0/1761228767957?e=1769040000&v=beta&t=xr1g_GyL6uCbHBX51z_CVQS_rMHzY24pbsIh0XgPdWU",
     },
-    { name: "Sam Chen", role: "Lead Designer", image: poster2 },
-    { name: "Jordan Lee", role: "Operations Manager", image: poster3 },
+    {
+        name: "Nikhil Sharma",
+        role: "Operations Manager",
+        image: "https://www.thatguynikhil.me/nikhilSharma.png",
+    },
+    {
+        name: "Ashish LundPakdu",
+        role: "Lead Designer",
+        image: "https://www.ledr.com/colours/black.jpg",
+    },
 ];
 
 const About = () => {

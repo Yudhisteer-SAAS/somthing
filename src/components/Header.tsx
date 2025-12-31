@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import NavLink from "@/components/NavLink";
+import { NavLink } from "@/components/NavLink";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

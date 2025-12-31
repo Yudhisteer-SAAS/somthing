@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import poster1 from "@/assets/poster1.jpg";
-import poster2 from "@/assets/poster2.jpg";
+import poster1 from "@/assets/poster1.png";
+import poster2 from "@/assets/poster2.png";
 
 // Mock cart data
 const initialCartItems = [

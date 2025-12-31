@@ -88,8 +88,9 @@ const Hero = () => {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 lg:w-72 animate-float shadow-2xl rounded-2xl overflow-hidden">
                             <img
                                 src={poster1}
-                                alt="Abstract geometric poster"
+                                alt="Abstract geometric wall art poster - Desert Sunrise collection"
                                 className="w-full h-auto object-cover"
+                                loading="lazy"
                             />
                         </div>
 
@@ -97,8 +98,9 @@ const Hero = () => {
                         <div className="absolute top-20 left-0 w-44 lg:w-52 animate-float-delayed shadow-xl rounded-2xl overflow-hidden rotate-[-8deg]">
                             <img
                                 src={poster2}
-                                alt="Botanical poster"
+                                alt="Botanical wall art poster - Tropical Dreams print"
                                 className="w-full h-auto object-cover"
+                                loading="lazy"
                             />
                         </div>
 
@@ -106,8 +108,9 @@ const Hero = () => {
                         <div className="absolute bottom-24 right-0 w-40 lg:w-48 animate-float-slow shadow-xl rounded-2xl overflow-hidden rotate-[5deg]">
                             <img
                                 src={poster3}
-                                alt="Retro travel poster"
+                                alt="Retro travel wall art poster - Sunset Paradise"
                                 className="w-full h-auto object-cover"
+                                loading="lazy"
                             />
                         </div>
 

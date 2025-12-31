@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { breadcrumbSchema } from "@/utils/schemas";
 import poster1 from "@/assets/poster1.png";
 import poster2 from "@/assets/poster2.png";
 
@@ -53,8 +55,21 @@ const Cart = () => {
   const shipping = subtotal > 50 ? 0 : 9.99;
   const total = subtotal + shipping;
 
+  const breadcrumbs = breadcrumbSchema([
+    { name: "Home", url: "https://somthing.com/" },
+    { name: "Cart", url: "https://somthing.com/cart" },
+  ]);
+
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <SEOHead
+        title="Shopping Cart | Somthing"
+        description="Review your selected wall art posters and complete your purchase. Free shipping on orders over $50."
+        keywords="shopping cart, checkout, buy posters"
+        canonical="/cart"
+        schema={breadcrumbs}
+      />
+      <div className="min-h-screen bg-background">
       <Header />
       
       <main className="pt-24 md:pt-32 pb-20">
@@ -268,6 +283,7 @@ const Cart = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

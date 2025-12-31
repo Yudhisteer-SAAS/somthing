@@ -4,6 +4,8 @@ import { Heart, Leaf, Package, Sparkles, Star, Users } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Newsletter from "@/components/Newsletter";
+import SEOHead from "@/components/SEOHead";
+import { faqSchema, breadcrumbSchema } from "@/utils/schemas";
 import poster1 from "@/assets/poster1.png";
 import poster2 from "@/assets/poster2.png";
 import poster3 from "@/assets/poster3.png";
@@ -69,8 +71,45 @@ const About = () => {
     const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
     const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.9]);
 
+    const faqs = [
+        {
+            question: "What is Somthing?",
+            answer: "Somthing is a premium wall art poster shop offering unique designs for modern homes. We specialize in abstract art, botanical prints, travel posters, and line art."
+        },
+        {
+            question: "Where do you ship?",
+            answer: "We ship to 25 countries worldwide with fast and reliable shipping partners."
+        },
+        {
+            question: "What materials do you use?",
+            answer: "We use eco-friendly materials and premium paper with vibrant, long-lasting colors for all our prints."
+        },
+        {
+            question: "How long does shipping take?",
+            answer: "Standard shipping takes 5-7 business days within the US and 10-14 days internationally."
+        },
+    ];
+
+    const breadcrumbs = breadcrumbSchema([
+        { name: "Home", url: "https://somthing.com/" },
+        { name: "About", url: "https://somthing.com/about" },
+    ]);
+
+    const combinedSchema = {
+        "@context": "https://schema.org",
+        "@graph": [faqSchema(faqs), breadcrumbs],
+    };
+
     return (
-        <div className="min-h-screen bg-background">
+        <>
+            <SEOHead
+                title="About Us | Somthing - Premium Wall Art Posters"
+                description="Learn about Somthing's journey from a small studio to a global community. Discover our values, team, and mission to make beautiful art accessible to everyone."
+                keywords="about somthing, wall art story, poster company, sustainable art prints"
+                canonical="/about"
+                schema={combinedSchema}
+            />
+            <div className="min-h-screen bg-background">
             <Header />
 
             {/* Hero Section with Parallax */}
@@ -388,6 +427,7 @@ const About = () => {
             <Newsletter />
             <Footer />
         </div>
+        </>
     );
 };
 

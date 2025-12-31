@@ -12,6 +12,8 @@ import {
 import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { breadcrumbSchema } from "@/utils/schemas";
 import poster1 from "@/assets/poster1.png";
 import poster2 from "@/assets/poster2.png";
 import poster3 from "@/assets/poster3.png";
@@ -138,8 +140,21 @@ const Shop = () => {
             return 0;
         });
 
+    const breadcrumbs = breadcrumbSchema([
+        { name: "Home", url: "https://somthing.com/" },
+        { name: "Shop", url: "https://somthing.com/shop" },
+    ]);
+
     return (
-        <div className="min-h-screen bg-background">
+        <>
+            <SEOHead
+                title="Shop All Posters | Premium Wall Art Prints | Somthing"
+                description="Browse our complete collection of wall art posters. Filter by Abstract, Botanical, Travel, and Line Art categories. Premium quality prints at affordable prices."
+                keywords="shop posters, buy wall art, poster store, art prints online, abstract posters, botanical prints, travel posters"
+                canonical="/shop"
+                schema={breadcrumbs}
+            />
+            <div className="min-h-screen bg-background">
             <Header />
 
             {/* Hero Section */}
@@ -437,6 +452,7 @@ const Shop = () => {
 
             <Footer />
         </div>
+        </>
     );
 };
 

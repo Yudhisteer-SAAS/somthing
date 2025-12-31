@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { productSchema, breadcrumbSchema } from "@/utils/schemas";
+import { trackViewItem } from "@/utils/analytics";
 import poster1 from "@/assets/poster1.png";
 import poster2 from "@/assets/poster2.png";
 import poster3 from "@/assets/poster3.png";
@@ -97,6 +100,16 @@ const ProductDetail = () => {
         (product.price + selectedSize.price + selectedFrame.price) * quantity;
     const images = [product.image, poster2, poster3, poster4];
 
+    // Track product view
+    useEffect(() => {
+        trackViewItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+        });
+    }, [product]);
+
     const handleAddToCart = () => {
         toast({
             title: "Added to cart!",
@@ -104,8 +117,41 @@ const ProductDetail = () => {
         });
     };
 
+    const productDescription = `${product.name} - ${product.category} wall art poster. Premium quality print available in multiple sizes and frame options. Perfect for modern home decor.`;
+    
+    const breadcrumbs = breadcrumbSchema([
+        { name: "Home", url: "https://somthing.com/" },
+        { name: "Shop", url: "https://somthing.com/shop" },
+        { name: product.name, url: `https://somthing.com/product/${product.id}` },
+    ]);
+
+    const productData = productSchema({
+        id: product.id,
+        name: product.name,
+        description: productDescription,
+        price: product.price,
+        image: product.image,
+        category: product.category,
+        availability: 'InStock',
+    });
+
+    const combinedSchema = {
+        "@context": "https://schema.org",
+        "@graph": [productData, breadcrumbs],
+    };
+
     return (
-        <div className="min-h-screen bg-background">
+        <>
+            <SEOHead
+                title={`${product.name} | ${product.category} Poster | Somthing`}
+                description={productDescription}
+                keywords={`${product.name}, ${product.category} art, wall poster, home decor, ${product.name.toLowerCase()} print`}
+                canonical={`/product/${product.id}`}
+                type="product"
+                ogImage={product.image}
+                schema={combinedSchema}
+            />
+            <div className="min-h-screen bg-background">
             <Header />
 
             <main className="pt-24 md:pt-32 pb-20">
@@ -389,6 +435,7 @@ const ProductDetail = () => {
 
             <Footer />
         </div>
+        </>
     );
 };
 

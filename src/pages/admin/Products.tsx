@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,8 +58,10 @@ const ProductForm = ({
     image_url: product?.image_url || '',
     stock_quantity: product?.stock_quantity || 0,
     is_active: product?.is_active ?? true,
+    tags: product?.tags || [],
   });
   const [uploading, setUploading] = useState(false);
+  const [tagInput, setTagInput] = useState('');
 
   const { data: categories } = useCategories();
   const createProduct = useCreateProduct();
@@ -102,6 +104,7 @@ const ProductForm = ({
       price: parseFloat(formData.price),
       stock_quantity: parseInt(String(formData.stock_quantity)),
       category_id: formData.category_id || null,
+      tags: formData.tags,
     };
 
     if (product) {
@@ -210,6 +213,59 @@ const ProductForm = ({
             </div>
           </label>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tags</Label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {formData.tags.map((tag: string, index: number) => (
+            <span
+              key={index}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => setFormData({
+                  ...formData,
+                  tags: formData.tags.filter((_: string, i: number) => i !== index)
+                })}
+                className="hover:text-destructive"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="Add a tag (e.g., Anime, Nature)"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+                  setFormData({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+                  setTagInput('');
+                }
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+                setFormData({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+                setTagInput('');
+              }
+            }}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">Press Enter or click + to add tags</p>
       </div>
 
       <div className="flex items-center gap-3">
@@ -344,7 +400,7 @@ const Products = () => {
                     <p className="text-sm text-muted-foreground">
                       ₹{product.price} • {product.categories?.name || 'No category'}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         product.is_active
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -356,6 +412,21 @@ const Products = () => {
                         Stock: {product.stock_quantity}
                       </span>
                     </div>
+                    {product.tags && product.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {product.tags.slice(0, 4).map((tag: string, index: number) => (
+                          <span
+                            key={index}
+                            className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {product.tags.length > 4 && (
+                          <span className="text-xs text-muted-foreground">+{product.tags.length - 4} more</span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">

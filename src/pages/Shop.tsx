@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Heart,
     ShoppingCart,
@@ -8,12 +9,15 @@ import {
     Grid3X3,
     LayoutGrid,
     X,
+    Search,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { breadcrumbSchema } from "@/utils/schemas";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import poster1 from "@/assets/poster1.png";
 import poster2 from "@/assets/poster2.png";
 import poster3 from "@/assets/poster3.png";
@@ -119,22 +123,53 @@ const sortOptions = [
 const Shop = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const categoryParam = searchParams.get("category");
+    const tagParam = searchParams.get("tag");
 
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(
         categoryParam
             ? categories.find((c) => c.toLowerCase() === categoryParam) || "All"
             : "All"
     );
+    const [selectedTag, setSelectedTag] = useState(tagParam || "");
     const [sortBy, setSortBy] = useState("Newest");
     const [showFilters, setShowFilters] = useState(false);
     const [gridCols, setGridCols] = useState(3);
     const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
 
-    const filteredProducts = allProducts
-        .filter(
-            (p) => selectedCategory === "All" || p.category === selectedCategory
+    // Fetch products from database
+    const { data: dbProducts } = useQuery({
+        queryKey: ['shop-products'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*, categories(name)')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            return data;
+        },
+    });
+
+    // Get unique tags from all products
+    const allTags = Array.from(
+        new Set(
+            dbProducts?.flatMap((p: any) => p.tags || []) || []
         )
-        .sort((a, b) => {
+    ).sort();
+
+    const filteredProducts = (dbProducts || allProducts)
+        .filter((p: any) => {
+            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(searchQuery.toLowerCase())));
+            const matchesCategory = selectedCategory === "All" || 
+                p.category === selectedCategory || 
+                p.categories?.name === selectedCategory;
+            const matchesTag = !selectedTag || (p.tags && p.tags.includes(selectedTag));
+            return matchesSearch && matchesCategory && matchesTag;
+        })
+        .sort((a: any, b: any) => {
             if (sortBy === "Price: Low to High") return a.price - b.price;
             if (sortBy === "Price: High to Low") return b.price - a.price;
             return 0;
@@ -214,15 +249,37 @@ const Shop = () => {
             {/* Filters Bar */}
             <section className="sticky top-16 md:top-20 z-40 bg-background/95 backdrop-blur-md border-b border-border py-4">
                 <div className="container mx-auto px-4 md:px-6">
+                    {/* Search Bar */}
+                    <div className="mb-4">
+                        <div className="relative max-w-md">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                                placeholder="Search posters by name or tag..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10 pr-10 h-12 rounded-full bg-secondary border-0"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         {/* Category Pills */}
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 flex-1">
                             {categories.map((category, index) => (
                                 <motion.button
                                     key={category}
-                                    onClick={() =>
-                                        setSelectedCategory(category)
-                                    }
+                                    onClick={() => {
+                                        setSelectedCategory(category);
+                                        setSelectedTag("");
+                                    }}
                                     className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                                         selectedCategory === category
                                             ? "bg-primary text-primary-foreground"
@@ -290,6 +347,39 @@ const Shop = () => {
                             </Button>
                         </div>
                     </div>
+
+                    {/* Tag Filters */}
+                    {allTags.length > 0 && (
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                            <span className="text-sm text-muted-foreground mr-2">Tags:</span>
+                            {selectedTag && (
+                                <motion.button
+                                    onClick={() => setSelectedTag("")}
+                                    className="px-3 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive flex items-center gap-1"
+                                    initial={{ scale: 0.9 }}
+                                    animate={{ scale: 1 }}
+                                >
+                                    Clear: {selectedTag}
+                                    <X className="w-3 h-3" />
+                                </motion.button>
+                            )}
+                            {allTags.slice(0, 10).map((tag: string) => (
+                                <motion.button
+                                    key={tag}
+                                    onClick={() => setSelectedTag(selectedTag === tag ? "" : tag)}
+                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                        selectedTag === tag
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                    }`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    {tag}
+                                </motion.button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -317,7 +407,7 @@ const Shop = () => {
                                         delay: index * 0.05,
                                     }}
                                     onMouseEnter={() =>
-                                        setHoveredProduct(product.id)
+                                        setHoveredProduct(typeof product.id === 'string' ? parseInt(product.id.slice(0, 8), 16) : product.id)
                                     }
                                     onMouseLeave={() => setHoveredProduct(null)}
                                     className="group"
@@ -331,7 +421,7 @@ const Shop = () => {
                                             {/* Image Container */}
                                             <div className="relative aspect-[3/4] overflow-hidden">
                                                 <motion.img
-                                                    src={product.image}
+                                                    src={(product as any).image_url || (product as any).image || poster1}
                                                     alt={product.name}
                                                     className="w-full h-full object-cover"
                                                     animate={{
@@ -420,13 +510,29 @@ const Shop = () => {
                                             {/* Product Info */}
                                             <div className="p-5">
                                                 <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                                                    {product.category}
+                                                    {(product as any).categories?.name || (product as any).category || 'Uncategorized'}
                                                 </span>
                                                 <h3 className="text-lg font-semibold mt-1 group-hover:text-primary transition-colors">
                                                     {product.name}
                                                 </h3>
+                                                {(product as any).tags && (product as any).tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-2">
+                                                        {(product as any).tags.slice(0, 2).map((tag: string, i: number) => (
+                                                            <span
+                                                                key={i}
+                                                                className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs cursor-pointer hover:bg-primary/20"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    setSelectedTag(tag);
+                                                                }}
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 <p className="text-xl font-bold text-primary mt-2">
-                                                    ${product.price}
+                                                    ₹{product.price}
                                                 </p>
                                             </div>
                                         </motion.div>

@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Avoid the posters directory, which contains images for the project
+public/posters

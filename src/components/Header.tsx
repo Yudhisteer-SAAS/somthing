@@ -106,7 +106,7 @@ const Header = () => {
               </motion.div>
             </Link>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="default">Sign In</Button>
+              <Button variant="default"><Link to="/auth">Sign In</Link></Button>
             </motion.div>
           </motion.div>
 
@@ -195,7 +195,7 @@ const Header = () => {
                     </span>
                   </Button>
                 </Link>
-                <Button variant="default" className="flex-1">Sign In</Button>
+                <Link to="/auth"><Button variant="default" className="flex-1">Sign In</Button></Link>
               </motion.div>
             </nav>
           </motion.div>

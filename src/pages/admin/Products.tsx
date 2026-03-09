@@ -241,12 +241,19 @@ const ProductForm = ({
           <Input
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
-            placeholder="Add a tag (e.g., Anime, Nature)"
+            placeholder="Add tags (comma-separated or press Enter)"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-                  setFormData({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+                const tagsToAdd = tagInput
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean);
+                if (tagsToAdd.length) {
+                  const uniqueNew = tagsToAdd.filter((t) => !formData.tags.includes(t));
+                  if (uniqueNew.length) {
+                    setFormData({ ...formData, tags: [...formData.tags, ...uniqueNew] });
+                  }
                   setTagInput('');
                 }
               }
@@ -256,8 +263,15 @@ const ProductForm = ({
             type="button"
             variant="outline"
             onClick={() => {
-              if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-                setFormData({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+              const tagsToAdd = tagInput
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean);
+              if (tagsToAdd.length) {
+                const uniqueNew = tagsToAdd.filter((t) => !formData.tags.includes(t));
+                if (uniqueNew.length) {
+                  setFormData({ ...formData, tags: [...formData.tags, ...uniqueNew] });
+                }
                 setTagInput('');
               }
             }}
@@ -265,7 +279,7 @@ const ProductForm = ({
             <Plus className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">Press Enter or click + to add tags</p>
+        <p className="text-xs text-muted-foreground">Paste or enter multiple tags separated by commas, then press Enter or click + to add</p>
       </div>
 
       <div className="flex items-center gap-3">

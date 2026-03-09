@@ -15,42 +15,42 @@ const products = [
         id: 1,
         name: "Desert Sunrise",
         category: "Abstract",
-        price: 29.99,
+        price: 30,
         image: poster1,
     },
     {
         id: 2,
         name: "Tropical Dreams",
         category: "Botanical",
-        price: 34.99,
+        price: 30,
         image: poster2,
     },
     {
         id: 3,
         name: "Sunset Paradise",
         category: "Travel",
-        price: 27.99,
+        price: 30,
         image: poster3,
     },
     {
         id: 4,
         name: "Elegant Portrait",
         category: "Line Art",
-        price: 24.99,
+        price: 30,
         image: poster4,
     },
     {
         id: 5,
         name: "Ocean Waves",
         category: "Japanese",
-        price: 32.99,
+        price: 30,
         image: poster5,
     },
     {
         id: 6,
         name: "Autumn Circles",
         category: "Mid-Century",
-        price: 28.99,
+        price: 30,
         image: poster6,
     },
 ];
@@ -222,7 +222,7 @@ const FeaturedProducts = () => {
                                             {product.name}
                                         </h3>
                                         <p className="text-xl font-bold text-primary mt-2">
-                                            ${product.price}
+                                            {product.price}rs
                                         </p>
                                     </div>
                                 </motion.div>

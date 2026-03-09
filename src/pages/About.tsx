@@ -35,12 +35,12 @@ const values = [
     },
 ];
 
-const stats = [
-    { number: "50K+", label: "Happy Customers" },
-    { number: "500+", label: "Unique Designs" },
-    { number: "25", label: "Countries Shipped" },
-    { number: "4.9", label: "Average Rating" },
-];
+// const stats = [
+//     { number: "50K+", label: "Happy Customers" },
+//     { number: "500+", label: "Unique Designs" },
+//     { number: "25", label: "Countries Shipped" },
+//     { number: "4.9", label: "Average Rating" },
+// ];
 
 const team = [
     {
@@ -52,12 +52,7 @@ const team = [
         name: "Nikhil Sharma",
         role: "Operations Manager",
         image: "https://www.thatguynikhil.me/nikhilSharma.png",
-    },
-    {
-        name: "Ashish LundPakdu",
-        role: "Lead Designer",
-        image: "https://www.ledr.com/colours/black.jpg",
-    },
+    }
 ];
 
 const About = () => {
@@ -338,7 +333,7 @@ const About = () => {
             </section>
 
             {/* Stats Section */}
-            <section className="py-20 bg-foreground text-background">
+            {/* <section className="py-20 bg-foreground text-background">
                 <div className="container mx-auto px-4 md:px-6">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                         {stats.map((stat, index) => (
@@ -368,7 +363,7 @@ const About = () => {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* Team Section */}
             <section className="py-20 md:py-32">

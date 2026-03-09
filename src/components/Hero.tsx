@@ -54,7 +54,7 @@ const Hero = () => {
                         </div>
 
                         {/* Stats */}
-                        <div className="flex gap-8 pt-4 animate-fade-up delay-400">
+                        {/* <div className="flex gap-8 pt-4 animate-fade-up delay-400">
                             <div>
                                 <p className="text-3xl font-bold text-foreground">
                                     500+
@@ -79,7 +79,7 @@ const Hero = () => {
                                     Star Rating
                                 </p>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Right: Floating Posters */}

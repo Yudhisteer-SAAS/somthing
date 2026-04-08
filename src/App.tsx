@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import Innothon from "./pages/innothon";
 import About from "./pages/About";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
@@ -54,7 +55,7 @@ const App = () => {
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/auth" element={<Auth />} />
-                
+                <Route path="/innothon" element={<Innothon />} />
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<Dashboard />} />

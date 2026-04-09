@@ -3,61 +3,18 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
-import poster1 from "@/assets/poster1.png";
-import poster2 from "@/assets/poster2.png";
-import poster3 from "@/assets/poster3.png";
-import poster4 from "@/assets/poster4.png";
-import poster5 from "@/assets/poster5.png";
-import poster6 from "@/assets/poster6.png";
+import { fallbackPosterProducts } from "@/data/posterCatalog";
+import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/hooks/use-toast";
+import { trackAddToCart } from "@/utils/analytics";
 
-const products = [
-    {
-        id: 1,
-        name: "Desert Sunrise",
-        category: "Abstract",
-        price: 30,
-        image: poster1,
-    },
-    {
-        id: 2,
-        name: "Tropical Dreams",
-        category: "Botanical",
-        price: 30,
-        image: poster2,
-    },
-    {
-        id: 3,
-        name: "Sunset Paradise",
-        category: "Travel",
-        price: 30,
-        image: poster3,
-    },
-    {
-        id: 4,
-        name: "Elegant Portrait",
-        category: "Line Art",
-        price: 30,
-        image: poster4,
-    },
-    {
-        id: 5,
-        name: "Ocean Waves",
-        category: "Japanese",
-        price: 30,
-        image: poster5,
-    },
-    {
-        id: 6,
-        name: "Autumn Circles",
-        category: "Mid-Century",
-        price: 30,
-        image: poster6,
-    },
-];
+const products = fallbackPosterProducts.slice(0, 6);
 
 const FeaturedProducts = () => {
     const sectionRef = useRef<HTMLElement>(null);
-    const [hoveredId, setHoveredId] = useState<number | null>(null);
+    const [hoveredId, setHoveredId] = useState<string | null>(null);
+    const { addItem } = useCart();
+    const { toast } = useToast();
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -66,6 +23,20 @@ const FeaturedProducts = () => {
 
     const headerY = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
     const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+
+    const handleAddToCart = (product: (typeof products)[number]) => {
+        addItem({ product, quantity: 1 });
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+        });
+        toast({
+            title: "Added to cart!",
+            description: `${product.name} was added to your cart.`,
+        });
+    };
 
     return (
         <section
@@ -203,9 +174,10 @@ const FeaturedProducts = () => {
                                             <Button
                                                 className="w-full"
                                                 variant="default"
-                                                onClick={(e) =>
-                                                    e.preventDefault()
-                                                }
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleAddToCart(product);
+                                                }}
                                             >
                                                 <ShoppingCart className="h-4 w-4 mr-2" />
                                                 Add to Cart
@@ -222,7 +194,7 @@ const FeaturedProducts = () => {
                                             {product.name}
                                         </h3>
                                         <p className="text-xl font-bold text-primary mt-2">
-                                            {product.price}rs
+                                            ₹{product.price}
                                         </p>
                                     </div>
                                 </motion.div>

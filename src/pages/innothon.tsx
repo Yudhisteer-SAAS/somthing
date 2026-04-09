@@ -38,6 +38,7 @@ import {
     mapDatabaseProductToStorefront,
     type StorefrontProduct,
 } from "@/data/posterCatalog";
+import { triggerRazorpayPaymentButton } from "@/utils/razorpayButton";
 
 const MAX_TOTAL_POSTERS = 10;
 const FREE_POSTERS_PER_ACCOUNT = 1;
@@ -75,6 +76,8 @@ const Innothon = () => {
     const [pincode, setPincode] = useState("");
     const [confirmOrder, setConfirmOrder] = useState(false);
     const [detailsConfirmed, setDetailsConfirmed] = useState(false);
+    const [paymentCompleted, setPaymentCompleted] = useState(false);
+    const [isLaunchingPayment, setIsLaunchingPayment] = useState(false);
     const [orderId, setOrderId] = useState("");
     const [hasClaimed, setHasClaimed] = useState(false);
 
@@ -127,8 +130,40 @@ const Innothon = () => {
 
     useEffect(() => {
         setDetailsConfirmed(false);
+        setPaymentCompleted(false);
+        setIsLaunchingPayment(false);
         setOrderId("");
     }, [selectedQuantities, customerName, mobile, email, address, pincode, confirmOrder]);
+
+    const openPaymentForCurrentAmount = async () => {
+        if (!paymentButtonId) {
+            toast({
+                title: "Payment button missing",
+                description: `No Razorpay button found for payable amount ${formatINR(payableAmount)}.`,
+                variant: "destructive",
+            });
+            return false;
+        }
+
+        try {
+            setIsLaunchingPayment(true);
+            await triggerRazorpayPaymentButton(paymentButtonId);
+            return true;
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Unable to open Razorpay payment at the moment.";
+            toast({
+                title: "Payment launch failed",
+                description: message,
+                variant: "destructive",
+            });
+            return false;
+        } finally {
+            setIsLaunchingPayment(false);
+        }
+    };
 
     const totalSelected = useMemo(
         () => Object.values(selectedQuantities).reduce((sum, qty) => sum + qty, 0),
@@ -150,17 +185,6 @@ const Innothon = () => {
 
     const payableAmount = paidPricing.discountedSubtotal + shippingCharge;
     const paymentButtonId = RAZORPAY_BUTTON_IDS[payableAmount];
-
-    const selectedPosterItems = useMemo(
-        () =>
-            posters
-                .filter((poster) => (selectedQuantities[poster.id] || 0) > 0)
-                .map((poster) => ({
-                    ...poster,
-                    quantity: selectedQuantities[poster.id],
-                })),
-        [posters, selectedQuantities],
-    );
 
     const setQuantityForPoster = (posterId: string, nextQty: number) => {
         const safeNext = Math.max(0, Math.floor(nextQty));
@@ -187,7 +211,7 @@ const Innothon = () => {
         });
     };
 
-    const handleConfirmOrder = () => {
+    const handleConfirmOrder = async () => {
         if (!user) {
             toast({
                 title: "Login required",
@@ -282,12 +306,59 @@ const Innothon = () => {
         setOrderId(generatedOrderId);
         setDetailsConfirmed(true);
 
+        const launched = await openPaymentForCurrentAmount();
+
+        toast({
+            title: launched ? "Payment opened" : "Details confirmed",
+            description: launched
+                ? "Complete payment, then tick confirmation and finalize the order."
+                : "Click Open Payment Again to launch Razorpay.",
+        });
+    };
+
+    const handleFinalizeOrder = () => {
+        if (!user) {
+            toast({
+                title: "Login required",
+                description: "Please login to continue.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (hasClaimed) {
+            toast({
+                title: "Offer already claimed",
+                description: "This account has already used the Innothon free-poster offer.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (!detailsConfirmed || !orderId) {
+            toast({
+                title: "Confirm details first",
+                description: "Please confirm your order details before finalizing.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (!paymentCompleted) {
+            toast({
+                title: "Payment not confirmed",
+                description: "Please complete payment and confirm it before finalizing.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         localStorage.setItem(getClaimKey(user.id), "true");
         setHasClaimed(true);
 
         toast({
             title: "Order confirm",
-            description: `Order ID: ${generatedOrderId}`,
+            description: `Order ID: ${orderId}`,
         });
     };
 
@@ -307,8 +378,8 @@ const Innothon = () => {
     const missingTotals = availableTotals.filter((amount) => !RAZORPAY_BUTTON_IDS[amount]);
 
     const breadcrumbs = breadcrumbSchema([
-        { name: "Home", url: "https://somthing-ten.vercel.app/" },
-        { name: "Innothon", url: "https://somthing-ten.vercel.app/innothon" },
+        { name: "Home", url: "https://somthing.app/" },
+        { name: "Innothon", url: "https://somthing.app/innothon" },
     ]);
 
     return (
@@ -396,7 +467,7 @@ const Innothon = () => {
                                                         variant="outline"
                                                         size="icon"
                                                         onClick={() => setQuantityForPoster(poster.id, qty - 1)}
-                                                        disabled={qty === 0 || hasClaimed}
+                                                        disabled={qty === 0}
                                                     >
                                                         <Minus className="h-4 w-4" />
                                                     </Button>
@@ -406,7 +477,6 @@ const Innothon = () => {
                                                         variant="outline"
                                                         size="icon"
                                                         onClick={() => setQuantityForPoster(poster.id, qty + 1)}
-                                                        disabled={hasClaimed}
                                                     >
                                                         <Plus className="h-4 w-4" />
                                                     </Button>
@@ -534,36 +604,44 @@ const Innothon = () => {
                                 <Button
                                     onClick={handleConfirmOrder}
                                     className="w-full"
-                                    disabled={!user || hasClaimed}
+                                    disabled={!user || hasClaimed || isLaunchingPayment}
                                 >
-                                    Confirm Order
+                                    {isLaunchingPayment ? "Opening Payment..." : "Confirm Order"}
                                 </Button>
 
                                 {detailsConfirmed && orderId && paymentButtonId && (
                                     <div className="rounded-xl border p-4">
                                         <div className="mb-3 flex items-center gap-2 text-sm text-primary">
                                             <CheckCircle2 className="h-4 w-4" />
-                                            Order confirm. Order ID: {orderId}
+                                            Details verified. Complete payment to confirm. Draft Order ID: {orderId}
                                         </div>
 
-                                        <form key={`${paymentButtonId}-${orderId}`}>
-                                            <input type="hidden" name="order_id" value={orderId} />
-                                            <input type="hidden" name="name" value={customerName} />
-                                            <input type="hidden" name="mobile" value={mobile} />
-                                            <input type="hidden" name="email" value={email} />
-                                            <input type="hidden" name="address" value={address} />
-                                            <input type="hidden" name="pincode" value={pincode} />
-                                            <input type="hidden" name="selected_total" value={totalSelected} />
-                                            <input type="hidden" name="paid_quantity" value={paidQuantity} />
-                                            <input type="hidden" name="free_posters" value={FREE_POSTERS_PER_ACCOUNT} />
-                                            <input type="hidden" name="selected_posters" value={JSON.stringify(selectedPosterItems.map((item) => ({ id: item.id, name: item.name, qty: item.quantity })))} />
-                                            <input type="hidden" name="payable_amount" value={payableAmount} />
-                                            <script
-                                                src="https://checkout.razorpay.com/v1/payment-button.js"
-                                                data-payment_button_id={paymentButtonId}
-                                                async
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            onClick={openPaymentForCurrentAmount}
+                                            disabled={isLaunchingPayment}
+                                        >
+                                            {isLaunchingPayment ? "Opening Payment..." : "Open Payment Again"}
+                                        </Button>
+
+                                        <label className="mt-4 flex items-start gap-3 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={paymentCompleted}
+                                                onChange={(e) => setPaymentCompleted(e.target.checked)}
+                                                className="mt-1"
                                             />
-                                        </form>
+                                            <span>I have successfully completed the Razorpay payment.</span>
+                                        </label>
+
+                                        <Button
+                                            className="mt-4 w-full"
+                                            onClick={handleFinalizeOrder}
+                                            disabled={!paymentCompleted || hasClaimed}
+                                        >
+                                            Finalize Order
+                                        </Button>
                                     </div>
                                 )}
 

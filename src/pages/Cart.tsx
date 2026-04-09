@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import RazorpayPaymentButton from "@/components/RazorpayPaymentButton";
 import {
     Minus,
     Plus,
@@ -27,12 +28,33 @@ import {
     POSTER_UNIT_PRICE,
 } from "@/utils/pricing";
 
+const RAZORPAY_BUTTON_IDS: Record<number, string> = {
+    100: "pl_SbGVwbuVTvkipz",
+    150: "pl_SbIPNZ0KMhlAwM",
+    200: "pl_SbITsZTGYgmx0W",
+    230: "pl_SbIVeXyaJuTtVh",
+    250: "pl_SbItK3VSWs493T",
+    280: "pl_SbIv6PQYDnvTPL",
+    300: "pl_SbIwv184eCkDT3",
+    330: "pl_SbIyDjlOg1Z1wG",
+    380: "pl_SbIzR3aXmmkX70",
+    400: "pl_SbJ0n0sf0S4ZLc",
+};
+
+const createPaymentReference = () => {
+    const ts = Date.now().toString().slice(-6);
+    const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `PAY-${ts}-${random}`;
+};
+
 const Cart = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { toast } = useToast();
     const { cartItems, updateQuantity, removeItem, clearCart } = useCart();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [paymentCompleted, setPaymentCompleted] = useState(false);
+    const [paymentReference, setPaymentReference] = useState("");
 
     const totalQuantity = useMemo(
         () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
@@ -43,6 +65,16 @@ const Cart = () => {
         () => getPosterPricingBreakdown(totalQuantity),
         [totalQuantity],
     );
+
+    const paymentButtonId = RAZORPAY_BUTTON_IDS[pricing.total];
+    const canShowPaymentButton = Boolean(
+        user && cartItems.length > 0 && paymentButtonId,
+    );
+
+    useEffect(() => {
+        setPaymentCompleted(false);
+        setPaymentReference(createPaymentReference());
+    }, [cartItems, pricing.total, user?.id]);
 
     const createOrderMutation = useMutation({
         mutationFn: async () => {
@@ -62,7 +94,7 @@ const Cart = () => {
                     status: "pending",
                     shipping_address: null,
                     discount_amount: pricing.savings,
-                    notes: `Poster quantity: ${totalQuantity}, shipping: ${pricing.shippingCharge}`,
+                    notes: `Poster quantity: ${totalQuantity}, shipping: ${pricing.shippingCharge}, payment_ref: ${paymentReference}`,
                 })
                 .select()
                 .single();
@@ -94,13 +126,40 @@ const Cart = () => {
         },
     });
 
-    const handleCheckout = async () => {
+    const handleFinalizeOrder = async () => {
         if (!user) {
             toast({
                 title: "Sign in required",
                 description: "Please sign in to complete your purchase.",
             });
             navigate("/auth");
+            return;
+        }
+
+        if (cartItems.length === 0) {
+            toast({
+                title: "Cart is empty",
+                description: "Add at least one poster to continue.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (!paymentButtonId) {
+            toast({
+                title: "Payment button missing",
+                description: `No Razorpay button found for payable amount ${formatINR(pricing.total)}.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (!paymentCompleted) {
+            toast({
+                title: "Payment not confirmed",
+                description: "Please complete payment and confirm it before finalizing.",
+                variant: "destructive",
+            });
             return;
         }
 
@@ -121,8 +180,8 @@ const Cart = () => {
             );
             clearCart();
             toast({
-                title: "Order placed successfully!",
-                description: `Your order #${result.orderId.slice(0, 8)} is now pending confirmation.`,
+                title: "Order confirmed",
+                description: `Payment received. Your order #${result.orderId.slice(0, 8)} is now pending processing.`,
             });
         } catch (error) {
             const message =
@@ -435,24 +494,53 @@ const Cart = () => {
                                         <Button
                                             className="w-full h-14 text-lg"
                                             size="lg"
-                                            onClick={handleCheckout}
-                                            disabled={
-                                                isCheckingOut ||
-                                                cartItems.length === 0
-                                            }
+                                            onClick={handleFinalizeOrder}
+                                            disabled={isCheckingOut || !paymentCompleted}
                                         >
                                             {isCheckingOut ? (
                                                 <>
                                                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                    Processing...
+                                                    Finalizing...
                                                 </>
                                             ) : (
                                                 <>
-                                                    Confirm & Checkout
+                                                    Finalize Order
                                                     <ArrowRight className="ml-2 h-5 w-5" />
                                                 </>
                                             )}
                                         </Button>
+
+                                        {canShowPaymentButton && paymentButtonId && (
+                                            <div className="mt-4 rounded-xl border p-4">
+                                                <p className="text-sm text-muted-foreground mb-3">
+                                                    Complete payment first, then confirm your order below.
+                                                </p>
+
+                                                <RazorpayPaymentButton
+                                                    paymentButtonId={paymentButtonId}
+                                                    formFields={{
+                                                        payment_reference: paymentReference,
+                                                        payable_amount: pricing.total,
+                                                    }}
+                                                />
+
+                                                <label className="mt-4 flex items-start gap-3 text-sm">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={paymentCompleted}
+                                                        onChange={(e) => setPaymentCompleted(e.target.checked)}
+                                                        className="mt-1"
+                                                    />
+                                                    <span>I have successfully completed the Razorpay payment.</span>
+                                                </label>
+                                            </div>
+                                        )}
+
+                                        {!user && (
+                                            <p className="mt-4 text-sm text-muted-foreground">
+                                                Sign in to view the Razorpay payment button.
+                                            </p>
+                                        )}
 
                                         <p className="text-center text-sm text-muted-foreground mt-4">
                                             Delivery is free only when order

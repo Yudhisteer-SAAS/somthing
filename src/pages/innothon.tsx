@@ -38,7 +38,7 @@ import {
     mapDatabaseProductToStorefront,
     type StorefrontProduct,
 } from "@/data/posterCatalog";
-import { triggerRazorpayPaymentButton } from "@/utils/razorpayButton";
+import RazorpayPaymentButton from "@/components/RazorpayPaymentButton";
 
 const MAX_TOTAL_POSTERS = 10;
 const FREE_POSTERS_PER_ACCOUNT = 1;
@@ -77,7 +77,6 @@ const Innothon = () => {
     const [confirmOrder, setConfirmOrder] = useState(false);
     const [detailsConfirmed, setDetailsConfirmed] = useState(false);
     const [paymentCompleted, setPaymentCompleted] = useState(false);
-    const [isLaunchingPayment, setIsLaunchingPayment] = useState(false);
     const [orderId, setOrderId] = useState("");
     const [hasClaimed, setHasClaimed] = useState(false);
 
@@ -131,39 +130,8 @@ const Innothon = () => {
     useEffect(() => {
         setDetailsConfirmed(false);
         setPaymentCompleted(false);
-        setIsLaunchingPayment(false);
         setOrderId("");
     }, [selectedQuantities, customerName, mobile, email, address, pincode, confirmOrder]);
-
-    const openPaymentForCurrentAmount = async () => {
-        if (!paymentButtonId) {
-            toast({
-                title: "Payment button missing",
-                description: `No Razorpay button found for payable amount ${formatINR(payableAmount)}.`,
-                variant: "destructive",
-            });
-            return false;
-        }
-
-        try {
-            setIsLaunchingPayment(true);
-            await triggerRazorpayPaymentButton(paymentButtonId);
-            return true;
-        } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : "Unable to open Razorpay payment at the moment.";
-            toast({
-                title: "Payment launch failed",
-                description: message,
-                variant: "destructive",
-            });
-            return false;
-        } finally {
-            setIsLaunchingPayment(false);
-        }
-    };
 
     const totalSelected = useMemo(
         () => Object.values(selectedQuantities).reduce((sum, qty) => sum + qty, 0),
@@ -306,13 +274,9 @@ const Innothon = () => {
         setOrderId(generatedOrderId);
         setDetailsConfirmed(true);
 
-        const launched = await openPaymentForCurrentAmount();
-
         toast({
-            title: launched ? "Payment opened" : "Details confirmed",
-            description: launched
-                ? "Complete payment, then tick confirmation and finalize the order."
-                : "Click Open Payment Again to launch Razorpay.",
+            title: "Details confirmed",
+            description: "Complete payment using the Razorpay button below, then finalize the order.",
         });
     };
 
@@ -604,9 +568,9 @@ const Innothon = () => {
                                 <Button
                                     onClick={handleConfirmOrder}
                                     className="w-full"
-                                    disabled={!user || hasClaimed || isLaunchingPayment}
+                                    disabled={!user || hasClaimed}
                                 >
-                                    {isLaunchingPayment ? "Opening Payment..." : "Confirm Order"}
+                                    Confirm Order
                                 </Button>
 
                                 {detailsConfirmed && orderId && paymentButtonId && (
@@ -616,14 +580,21 @@ const Innothon = () => {
                                             Details verified. Complete payment to confirm. Draft Order ID: {orderId}
                                         </div>
 
-                                        <Button
-                                            variant="outline"
-                                            className="w-full"
-                                            onClick={openPaymentForCurrentAmount}
-                                            disabled={isLaunchingPayment}
-                                        >
-                                            {isLaunchingPayment ? "Opening Payment..." : "Open Payment Again"}
-                                        </Button>
+                                        <RazorpayPaymentButton
+                                            paymentButtonId={paymentButtonId}
+                                            formFields={{
+                                                order_id: orderId,
+                                                name: customerName,
+                                                mobile,
+                                                email,
+                                                address,
+                                                pincode,
+                                                selected_total: totalSelected,
+                                                paid_quantity: paidQuantity,
+                                                free_posters: FREE_POSTERS_PER_ACCOUNT,
+                                                payable_amount: payableAmount,
+                                            }}
+                                        />
 
                                         <label className="mt-4 flex items-start gap-3 text-sm">
                                             <input
